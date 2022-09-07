@@ -25,7 +25,7 @@ function run() {
     const inventoryCollection = client.db("manufacture").collection("tools");
 
     // Load  Inventory
-    app.get("/inventorys", async (req, res) => {
+    app.get("/tools", async (req, res) => {
       const query = {};
       const cursor = inventoryCollection.find(query);
       const result = await cursor.toArray()
