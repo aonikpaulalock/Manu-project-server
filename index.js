@@ -27,7 +27,42 @@ function run() {
     const blogsCollection = client.db("manufacture").collection("blogs");
     const reviewCollection = client.db("manufacture").collection("reviews");
     const profileCollection = client.db("manufacture").collection("profiles");
+    const userCollection = client.db("manufacture").collection("users");
+    // const paymentCollection = client.db("manufacture").collection("payments");
     
+
+    // // Payment Api and Verify
+    // app.post("/create-payment-intent", async (req, res) => {
+    //   const service = req.body;
+    //   const price = service.price;
+    //   const amount = price * 100;
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     amount: amount,
+    //     currency: 'usd',
+    //     payment_method_types: ['card']
+    //   });
+    //   res.send({ clientSecret: paymentIntent.client_secret })
+    // });
+
+
+    // Upadate Payment
+    app.patch("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId
+        }
+      }
+
+      const result = await paymentCollection.insertOne(payment);
+      const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
+      res.send(updatedOrder);
+    });
+
+
 
     // Tools Collection
     app.get("/tools", async (req, res) => {
@@ -98,6 +133,51 @@ function run() {
       const result = await orderCollection.findOne(filter);
       res.send(result);
     });
+
+   // Create User 
+   app.put("/users/:email", async (req, res) => {
+    const email = req.params.email;
+    const user = req.body;
+    const filter = { email: email };
+    const options = { upsert: true };
+    const updateDoc = {
+      $set: user,
+    };
+    // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN)
+    const result = await userCollection.updateOne(filter, updateDoc, options);
+    res.send(result)
+  });
+
+
+  //  Click Admin Button And Create admin
+  app.put('/user/admin/:email', async (req, res) => {
+    const email = req.params.email;
+    const filter = { email: email };
+    console.log(filter);
+    const updateDoc = {
+      $set: { role: "admin" }
+    }
+    const result = await userCollection.updateOne(filter, updateDoc)
+    res.send(result)
+  });
+
+  // Admin or Not
+  app.get("/user/:email", async (req, res) => {
+    const email = req.params.email;
+    const filter = { email: email };
+    const user = await userCollection.findOne(filter);
+    const isAdmin = user?.role === 'admin';
+    res.send({ admin: isAdmin })
+  });
+
+
+  // Load All Users
+  app.get("/users", async (req, res) => {
+    const result = await userCollection.find().toArray()
+    res.send(result)
+  });
+
+
 
 
     // Review And Profile Update
