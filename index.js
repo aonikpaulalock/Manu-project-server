@@ -4,7 +4,7 @@ const cors = require('cors');
 const app = express()
 const port = process.env.PORT || 4000
 require('dotenv').config()
-
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // Middletare
 app.use(cors());
 app.use(express.json());
@@ -28,21 +28,21 @@ function run() {
     const reviewCollection = client.db("manufacture").collection("reviews");
     const profileCollection = client.db("manufacture").collection("profiles");
     const userCollection = client.db("manufacture").collection("users");
-    // const paymentCollection = client.db("manufacture").collection("payments");
+    const paymentCollection = client.db("manufacture").collection("payments");
     
 
-    // // Payment Api and Verify
-    // app.post("/create-payment-intent", async (req, res) => {
-    //   const service = req.body;
-    //   const price = service.price;
-    //   const amount = price * 100;
-    //   const paymentIntent = await stripe.paymentIntents.create({
-    //     amount: amount,
-    //     currency: 'usd',
-    //     payment_method_types: ['card']
-    //   });
-    //   res.send({ clientSecret: paymentIntent.client_secret })
-    // });
+    // Payment Api and Verify
+    app.post("/create-payment-intent", async (req, res) => {
+      const service = req.body;
+      const price = service.price;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+      res.send({ clientSecret: paymentIntent.client_secret })
+    });
 
 
     // Upadate Payment
@@ -215,9 +215,6 @@ function run() {
       const blogs = await blogsCollection.findOne(filter);
       res.send(blogs);
     });
-
-
-
 
   }
   catch {
