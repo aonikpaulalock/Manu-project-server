@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion,ObjectId } = require('mongodb');
 const express = require('express')
 const cors = require('cors');
 const app = express()
@@ -25,6 +25,8 @@ function run() {
     const toolsCollection = client.db("manufacture").collection("tools");
     const orderCollection = client.db("manufacture").collection("orders");
     const blogsCollection = client.db("manufacture").collection("blogs");
+    const reviewCollection = client.db("manufacture").collection("reviews");
+    const profileCollection = client.db("manufacture").collection("profiles");
     
 
     // Tools Collection
@@ -98,6 +100,27 @@ function run() {
     });
 
 
+    // Review And Profile Update
+        // Reviews Get
+        app.get("/reviews", async (req, res) => {
+          const result = await reviewCollection.find().toArray()
+          res.send(result)
+        });
+    
+        // Post Reviews
+        app.post("/review", async (req, res) => {
+          const reviews = req.body;
+          const result = await reviewCollection.insertOne(reviews);
+          res.send(result)
+        });
+    
+    
+        // Profile Update
+        app.post("/profile", async (req, res) => {
+          const user = req.body;
+          const result = await profileCollection.insertOne(user);
+          res.send(result)
+        });
 
     
     // Load All Blogs
